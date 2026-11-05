@@ -10,9 +10,9 @@ export const useAuthStore = defineStore('auth', {
     isModerator: (s) => s.role === 'moderator',
   },
   actions: {
-    fakeLogin(role = 'user') {
+    fakeLogin(role = 'user', username = null) {
       this.role = role
-      this.user = { username: role === 'moderator' ? 'mod_demo' : 'demo_user' }
+      this.user = { username: username || (role === 'moderator' ? 'mod_demo' : 'demo_user') }
     },
     logout() {
       this.role = 'guest'
