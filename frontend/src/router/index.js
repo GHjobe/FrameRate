@@ -11,6 +11,7 @@ const routes = [
   { path: '/for-you', name: 'for-you', component: () => import('@/pages/ForYouPage.vue') },
   { path: '/watch-together', name: 'watch-together', component: () => import('@/pages/WatchTogetherPage.vue') },
   { path: '/profile', name: 'profile', component: () => import('@/pages/ProfilePage.vue') },
+  { path: '/component-test', component: () => import('../pages/ComponentTest.vue')},
   {
     path: '/moderation',
     name: 'moderation',
