@@ -14,3 +14,12 @@ export const removeFromWatchlist = (movieId) => {
   if (i !== -1) watchlist.splice(i, 1)
   return delay(true)
 }
+
+export const addToWatchlist = (movieId, status = 'plan') => {
+  let item = watchlist.find((w) => w.movieId === movieId)
+  if (!item) {
+    item = { movieId, status, dateAdded: new Date().toISOString().slice(0, 10) }
+    watchlist.push(item)
+  }
+  return delay(item)
+}

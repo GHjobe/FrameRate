@@ -1,10 +1,10 @@
 export const movies = [
-  { id: 1, title: 'Inception', year: 2010, runtime: 148, score: 8.7, ratings: 1204, genres: ['Sci-Fi', 'Action'], poster: '', backdrop: '', synopsis: 'A thief who steals secrets through dreams takes on one last job.' },
-  { id: 2, title: 'Interstellar', year: 2014, runtime: 169, score: 8.6, ratings: 980, genres: ['Sci-Fi', 'Drama'], poster: '', backdrop: '', synopsis: 'Explorers travel through a wormhole to save humanity.' },
-  { id: 3, title: 'The Dark Knight', year: 2008, runtime: 152, score: 9.0, ratings: 2100, genres: ['Action', 'Crime'], poster: '', backdrop: '', synopsis: 'Batman faces the Joker in Gotham City.' },
-  { id: 4, title: 'Parasite', year: 2019, runtime: 132, score: 8.5, ratings: 870, genres: ['Thriller', 'Drama'], poster: '', backdrop: '', synopsis: 'A poor family schemes its way into a wealthy household.' },
-  { id: 5, title: 'Spirited Away', year: 2001, runtime: 125, score: 8.6, ratings: 760, genres: ['Animation', 'Fantasy'], poster: '', backdrop: '', synopsis: 'A girl enters a world of spirits to rescue her parents.' },
-  { id: 6, title: 'Whiplash', year: 2014, runtime: 106, score: 8.4, ratings: 640, genres: ['Drama', 'Music'], poster: '', backdrop: '', synopsis: 'A young drummer is pushed to the edge by his instructor.' },
+  { id: 1, title: 'Inception', year: 2010, runtime: 148, score: 8.7, ratings: 1204, genres: ['Sci-Fi', 'Action'], poster: '', backdrop: '', certification: 'PG-13', hd: true, distribution: { 5: 640, 4: 380, 3: 120, 2: 40, 1: 24 }, providers: { stream: ['Netflix', 'Max'], rent: ['Apple TV', 'Prime Video', 'Google Play'], buy: ['Apple TV', 'Vudu'], other: ['Kanopy'] },synopsis: 'A thief who steals secrets through dreams takes on one last job.' },
+  { id: 2, title: 'Interstellar', year: 2014, runtime: 169, score: 8.6, ratings: 980, genres: ['Sci-Fi', 'Drama'], poster: '', backdrop: '', certification: 'PG-13', hd: true, distribution: { 5: 500, 4: 310, 3: 110, 2: 40, 1: 20 }, providers: { stream: ['Paramount+'], rent: ['Apple TV', 'Prime Video'], buy: ['Apple TV'], other: [] },synopsis: 'Explorers travel through a wormhole to save humanity.' },
+  { id: 3, title: 'The Dark Knight', year: 2008, runtime: 152, score: 9.0, ratings: 2100, genres: ['Action', 'Crime'], poster: '', backdrop: '', certification: 'PG-13', hd: true, distribution: { 5: 1300, 4: 560, 3: 160, 2: 50, 1: 30 },synopsis: 'Batman faces the Joker in Gotham City.' },
+  { id: 4, title: 'Parasite', year: 2019, runtime: 132, score: 8.5, ratings: 870, genres: ['Thriller', 'Drama'], poster: '', backdrop: '', certification: 'R', hd: true,synopsis: 'A poor family schemes its way into a wealthy household.' },
+  { id: 5, title: 'Spirited Away', year: 2001, runtime: 125, score: 8.6, ratings: 760, genres: ['Animation', 'Fantasy'], poster: '', backdrop: '', certification: 'PG',synopsis: 'A girl enters a world of spirits to rescue her parents.' },
+  { id: 6, title: 'Whiplash', year: 2014, runtime: 106, score: 8.4, ratings: 640, genres: ['Drama', 'Music'], poster: '', backdrop: '', certification: 'R',synopsis: 'A young drummer is pushed to the edge by his instructor.' },
 ]
 
 export const genres = ['Action', 'Comedy', 'Drama', 'Sci-Fi', 'Thriller', 'Animation', 'Fantasy', 'Crime', 'Music', 'Romance', 'Horror']
