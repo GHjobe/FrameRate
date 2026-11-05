@@ -21,6 +21,7 @@ defineProps({
   padding: 10px var(--space-6);
   border-radius: var(--radius-md);
   font-weight: 600;
+  white-space: nowrap;
   border: 1px solid transparent;
   transition: background 0.15s, border-color 0.15s, opacity 0.15s;
 }
