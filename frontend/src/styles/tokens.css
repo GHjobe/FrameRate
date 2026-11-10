@@ -1,19 +1,19 @@
 :root {
   /* Colors */
-  --color-bg: #0b1220;
-  --color-surface: #131c2e;
-  --color-surface-hover: #1b2740;
-  --color-border: #263248;
+  --color-bg: #111820;
+  --color-surface:	#202C3A;
+  --color-surface-hover: #2B3B50;
+  --color-border: #52677F;
 
-  --color-primary: #f5a524;
-  --color-primary-hover: #d98f14;
-  --color-nav-active: #3b82f6;
-  --color-score: #22c55e;
-  --color-danger: #ef4444;
-  --color-danger-hover: #dc2626;
+  --color-primary: #E5A86B;
+  --color-primary-hover: #CC8D4E;
+  --color-nav-active: #8FAECC;
+  --color-score: #79A985;
+  --color-danger: #E47777;
+  --color-danger-hover: #CC5B5B;
 
-  --color-text: #f1f5f9;
-  --color-text-muted: #94a3b8;
+  --color-text: #E4EAF1;
+  --color-text-muted: #A8B8C9;
 
   /* Fonts */
   --font-heading: 'Playfair Display', Georgia, 'Times New Roman', serif;
