@@ -319,6 +319,7 @@ const statusModel = computed({
 .detail { padding-top: var(--space-6); padding-bottom: var(--space-8); }
 .muted { color: var(--color-text-muted); font-size: var(--text-sm); }
 
+
 /* Loading + message states */
 .detail__loading { display: flex; flex-direction: column; gap: var(--space-6); }
 .detail__skeleton-main { display: flex; flex-direction: column; gap: var(--space-4); }
