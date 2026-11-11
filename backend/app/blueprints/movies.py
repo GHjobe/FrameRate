@@ -2,3 +2,9 @@
 from flask import Blueprint
 
 bp = Blueprint("movies", __name__, url_prefix="/api/movies")
+
+from flask import jsonify
+from app.models.base import db
+from app.models.movie import Movie
+from app.models.movie_stats import MovieStats
+
