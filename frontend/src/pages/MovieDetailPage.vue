@@ -2,6 +2,8 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getMovie, getSimilarMovies } from '@/api/movies'
+import { submitReport } from '@/api/reports'
+import { getReviews, addReview, updateReview, toggleHelpful, deleteReview } from '@/api/reviews'
 import { getWatchlist, addToWatchlist, updateWatchlistStatus, removeFromWatchlist } from '@/api/watchlist'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
@@ -10,9 +12,11 @@ import BaseDropdown from '@/components/BaseDropdown.vue'
 import BaseTabs from '@/components/BaseTabs.vue'
 import BaseTag from '@/components/BaseTag.vue'
 import MovieCard from '@/components/MovieCard.vue'
+import RateReviewPanel from '@/components/RateReviewPanel.vue'
+import ReportPanel from '@/components/ReportPanel.vue'
+import ReviewCard from '@/components/ReviewCard.vue'
 import ScoreBadge from '@/components/ScoreBadge.vue'
 import SkeletonLoader from '@/components/SkeletonLoader.vue'
-import StarRating from '@/components/StarRating.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -22,6 +26,14 @@ const toast = useToastStore()
 const state = ref('loading') // loading | ready | notfound | error
 const movie = ref(null)
 const similar = ref([])
+const PAGE_SIZE = 5
+const reviews = ref([])
+const visibleCount = ref(PAGE_SIZE)
+const saving = ref(false)
+const reporting = ref(false)
+const reportOverride = ref(null) // set when a review is being reported; null = report the movie
+const reportKey = ref(0) // bumped after a report is sent so the form starts fresh
+const quickAccessEl = ref(null)
 const watchlist = ref([])
 const activeTab = ref('overview')
 let requestId = 0
@@ -37,11 +49,14 @@ async function load(id) {
   const current = ++requestId
   state.value = 'loading'
   activeTab.value = 'overview'
+  reportOverride.value = null
   try {
-    const [m, sim] = await Promise.all([getMovie(id), getSimilarMovies(id), refreshWatchlist()])
+    const [m, sim, , revs] = await Promise.all([getMovie(id), getSimilarMovies(id), refreshWatchlist(), getReviews(id)])
     if (current !== requestId) return // a newer navigation took over
     movie.value = m ?? null
     similar.value = sim ?? []
+    reviews.value = revs ?? []
+    visibleCount.value = PAGE_SIZE
     state.value = m ? 'ready' : 'notfound'
   } catch {
     if (current !== requestId) return
@@ -66,8 +81,6 @@ const runtimeLabel = computed(() => {
 
 const hasScore = computed(() => typeof movie.value?.score === 'number')
 const hasRatings = computed(() => typeof movie.value?.ratings === 'number')
-// Scores are on a 10-point scale; StarRating is 5 stars.
-const starValue = computed(() => (hasScore.value ? movie.value.score / 2 : 0))
 
 const backdropStyle = computed(() =>
   movie.value?.backdrop ? { backgroundImage: `url("${movie.value.backdrop}")` } : {},
@@ -97,7 +110,7 @@ const visibleProviderGroups = computed(() =>
 
 const tabs = computed(() => [
   { key: 'overview', label: 'Overview' },
-  { key: 'reviews', label: 'Reviews', count: 0 }, // no reviews source yet (COMP-02)
+  { key: 'reviews', label: 'Reviews', count: reviews.value.length },
   { key: 'similar', label: 'Similar Movies', count: similar.value.length },
 ])
 
@@ -110,12 +123,103 @@ const requireLogin = (action) => {
 
 const onRateReview = () => {
   if (!requireLogin('rate and review movies')) return
-  toast.show('The review form is coming soon')
+  scrollToPanel()
 }
 
 const onReport = () => {
   if (!requireLogin('report a movie')) return
-  toast.show('The report form is coming soon')
+  reportOverride.value = null
+  scrollToPanel()
+}
+
+// ---------- reviews ----------
+const isOwn = (r) => auth.isLoggedIn && r.username === auth.user?.username
+// The signed-in user's own review is pinned to the top.
+const orderedReviews = computed(() => [...reviews.value.filter(isOwn), ...reviews.value.filter((r) => !isOwn(r))])
+const visibleReviews = computed(() => orderedReviews.value.slice(0, visibleCount.value))
+const isHelped = (r) => auth.isLoggedIn && r.helpedBy.includes(auth.user?.username)
+
+async function handleHelpful(review) {
+  if (!requireLogin('mark reviews as helpful')) return
+  if (review.username === auth.user?.username) {
+    toast.show('You can’t mark your own review as helpful', 'error')
+    return
+  }
+  try {
+    const updated = await toggleHelpful(review.id, auth.user.username)
+    reviews.value = reviews.value.map((r) => (r.id === updated.id ? updated : r))
+  } catch {
+    toast.show('Could not update your vote', 'error')
+  }
+}
+
+const scrollToPanel = () => quickAccessEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+const onEditReview = () => scrollToPanel()
+
+// The user's own review (if any) fills the Rate & Review panel in edit mode.
+const ownReview = computed(() => reviews.value.find(isOwn) ?? null)
+const movieSubtitle = computed(() => [movie.value?.year, runtimeLabel.value].filter(Boolean).join(' · '))
+
+async function handleSubmitReview(form) {
+  if (!requireLogin('rate and review movies')) return
+  saving.value = true
+  try {
+    if (ownReview.value) {
+      const updated = await updateReview(ownReview.value.id, form)
+      reviews.value = reviews.value.map((r) => (r.id === updated.id ? updated : r))
+      toast.show('Your review was updated')
+    } else {
+      const created = await addReview({ movieId: movie.value.id, username: auth.user.username, ...form })
+      reviews.value = [created, ...reviews.value]
+      toast.show('Your review was posted')
+    }
+    activeTab.value = 'reviews'
+  } catch (e) {
+    toast.show(e?.message || 'Could not save your review', 'error')
+  } finally {
+    saving.value = false
+  }
+}
+
+async function onDeleteReview(review) {
+  try {
+    await deleteReview(review.id)
+    reviews.value = reviews.value.filter((r) => r.id !== review.id)
+    toast.show('Your review was deleted')
+  } catch {
+    toast.show('Could not delete your review', 'error')
+  }
+}
+
+const reportTarget = computed(
+  () => reportOverride.value ?? { type: 'movie', id: movie.value.id, label: movie.value.title },
+)
+
+const onReportReview = (review) => {
+  if (!requireLogin('report a review')) return
+  reportOverride.value = { type: 'review', id: review.id, label: `review by ${review.username}` }
+  scrollToPanel()
+}
+
+async function handleSubmitReport({ reason, details }) {
+  if (!requireLogin('report content')) return
+  reporting.value = true
+  try {
+    await submitReport({
+      type: reportTarget.value.type,
+      targetId: reportTarget.value.id,
+      reason,
+      details,
+      reporter: auth.user.username,
+    })
+    toast.show('Thanks, your report was submitted')
+    reportOverride.value = null
+    reportKey.value += 1
+  } catch (e) {
+    toast.show(e?.message || 'Could not send your report', 'error')
+  } finally {
+    reporting.value = false
+  }
 }
 
 const watchlistItem = computed(() => watchlist.value.find((w) => w.movieId === movie.value?.id) ?? null)
@@ -224,46 +328,39 @@ const statusModel = computed({
 
       <div class="detail__grid">
         <div class="detail__main">
-          <!-- Score box -->
-          <section class="panel score" aria-label="FrameRate score">
-            <div class="score__summary">
-              <h2 class="panel__title">FrameRate Score</h2>
-              <template v-if="hasScore">
-                <ScoreBadge :score="movie.score" :ratings="hasRatings ? movie.ratings : undefined" />
-                <StarRating readonly :size="22" :model-value="starValue" />
-              </template>
-              <p v-else class="muted">Not rated yet</p>
-              <p v-if="hasRatings" class="muted">{{ movie.ratings.toLocaleString() }} ratings</p>
+          <!-- Score box + actions -->
+          <section class="panel score-box" aria-label="FrameRate score">
+            <div class="score-box__stats">
+              <div class="score-box__head">
+                <ScoreBadge v-if="hasScore" :score="movie.score" />
+                <span v-else class="muted">Not rated yet</span>
+                <span v-if="hasRatings" class="muted">{{ movie.ratings.toLocaleString() }} ratings</span>
+              </div>
+              <p class="muted">FrameRate score</p>
+
+              <div class="score-box__bars">
+                <template v-if="distribution.hasData">
+                  <div v-for="row in distribution.rows" :key="row.star" class="bar">
+                    <span class="bar__label">{{ row.star }}★</span>
+                    <span class="bar__track" role="presentation">
+                      <span class="bar__fill" :style="{ width: row.pct + '%' }" />
+                    </span>
+                    <span class="bar__pct">{{ row.pct }}%</span>
+                  </div>
+                </template>
+                <p v-else class="muted">Rating breakdown not available.</p>
+              </div>
             </div>
 
-            <div class="score__bars">
-              <template v-if="distribution.hasData">
-                <div v-for="row in distribution.rows" :key="row.star" class="bar">
-                  <span class="bar__label">{{ row.star }}★</span>
-                  <span class="bar__track" role="presentation">
-                    <span class="bar__fill" :style="{ width: row.pct + '%' }" />
-                  </span>
-                  <span class="bar__pct">{{ row.pct }}%</span>
-                </div>
-              </template>
-              <p v-else class="muted">Rating breakdown not available.</p>
+            <div class="score-box__actions">
+              <BaseButton variant="secondary" @click="onRateReview">Rate &amp; Review</BaseButton>
+
+              <BaseDropdown v-if="watchlistItem" v-model="statusModel" :options="statusOptions" />
+              <BaseButton v-else variant="secondary" @click="handleAdd(movie)">+ Add to Watchlist</BaseButton>
+
+              <BaseButton variant="danger" @click="onReport">Report</BaseButton>
             </div>
           </section>
-
-          <!-- Actions -->
-          <div class="actions">
-            <BaseButton @click="onRateReview">Rate &amp; Review</BaseButton>
-
-            <BaseDropdown
-              v-if="watchlistItem"
-              v-model="statusModel"
-              class="actions__status"
-              :options="statusOptions"
-            />
-            <BaseButton v-else variant="secondary" @click="handleAdd(movie)">+ Add to Watchlist</BaseButton>
-
-            <BaseButton variant="text" @click="onReport">Report</BaseButton>
-          </div>
 
           <!-- Tabs -->
           <BaseTabs v-model="activeTab" :tabs="tabs" />
@@ -280,7 +377,26 @@ const statusModel = computed({
           </section>
 
           <section v-else-if="activeTab === 'reviews'" class="tab-panel">
-            <p class="muted">No reviews yet. Be the first to rate and review this movie.</p>
+            <p v-if="!reviews.length" class="muted">No reviews yet. Be the first to rate and review this movie.</p>
+            <div v-else class="reviews">
+              <ReviewCard
+                v-for="r in visibleReviews"
+                :key="r.id"
+                :review="r"
+                :helped="isHelped(r)"
+                :own="isOwn(r)"
+                @helpful="handleHelpful"
+                @report="onReportReview"
+                @edit="onEditReview"
+                @delete="onDeleteReview"
+              />
+              <BaseButton
+                v-if="reviews.length > visibleCount"
+                variant="secondary"
+                class="reviews__more"
+                @click="visibleCount += PAGE_SIZE"
+              >Show more reviews ({{ reviews.length - visibleCount }} more)</BaseButton>
+            </div>
           </section>
 
           <section v-else class="tab-panel">
@@ -311,6 +427,27 @@ const statusModel = computed({
           </p>
         </aside>
       </div>
+
+      <!-- Quick Access: inline panels (no popups) -->
+      <section ref="quickAccessEl" class="quick" aria-label="Quick Access">
+        <h2 class="quick__title">Quick Access</h2>
+        <div class="quick__grid">
+          <RateReviewPanel
+            :movie="movie"
+            :subtitle="movieSubtitle"
+            :review="ownReview"
+            :busy="saving"
+            @submit="handleSubmitReview"
+          />
+          <ReportPanel
+            :key="reportKey"
+            :target="reportTarget"
+            :busy="reporting"
+            @submit="handleSubmitReport"
+            @cancel="reportOverride = null"
+          />
+        </div>
+      </section>
     </template>
   </main>
 </template>
@@ -318,7 +455,6 @@ const statusModel = computed({
 <style scoped>
 .detail { padding-top: var(--space-6); padding-bottom: var(--space-8); }
 .muted { color: var(--color-text-muted); font-size: var(--text-sm); }
-
 
 /* Loading + message states */
 .detail__loading { display: flex; flex-direction: column; gap: var(--space-6); }
@@ -367,19 +503,20 @@ const statusModel = computed({
 .panel { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); }
 .panel__title { font-size: var(--text-lg); margin-bottom: var(--space-3); }
 
-/* Score box */
-.score { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-8); align-items: center; }
-.score__summary { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
-.score__bars { display: flex; flex-direction: column; gap: var(--space-2); }
+/* Score box + actions */
+.score-box { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: var(--space-6); }
+.score-box__stats { display: flex; flex-direction: column; gap: var(--space-1); }
+.score-box__head { display: flex; align-items: center; gap: var(--space-3); }
+.score-box__bars { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); }
 .bar { display: grid; grid-template-columns: 28px minmax(0, 1fr) 40px; align-items: center; gap: var(--space-3); font-size: var(--text-sm); }
 .bar__label { color: var(--color-text-muted); }
 .bar__track { height: 8px; border-radius: var(--radius-pill); background: var(--color-border); overflow: hidden; }
 .bar__fill { display: block; height: 100%; background: var(--color-primary); border-radius: var(--radius-pill); }
 .bar__pct { text-align: right; color: var(--color-text-muted); }
-
-/* Actions */
-.actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
-.actions__status { min-width: 240px; }
+.score-box__actions {
+  display: flex; flex-direction: column; justify-content: center; gap: var(--space-3);
+  padding-left: var(--space-6); border-left: 1px solid var(--color-border);
+}
 
 /* Tabs */
 .tab-panel { display: flex; flex-direction: column; gap: var(--space-4); }
@@ -387,7 +524,14 @@ const statusModel = computed({
 .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--space-4); }
 .facts dt { color: var(--color-text-muted); font-size: var(--text-sm); }
 .facts dd { font-weight: 600; }
+.reviews { display: flex; flex-direction: column; }
+.reviews__more { align-self: center; margin-top: var(--space-4); }
 .similar { display: flex; flex-wrap: wrap; gap: var(--space-6); }
+
+/* Quick Access */
+.quick { margin-top: var(--space-8); scroll-margin-top: calc(var(--navbar-height) + var(--space-4)); }
+.quick__title { font-size: var(--text-xl); margin-bottom: var(--space-4); }
+.quick__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); align-items: start; }
 
 /* Where to Watch */
 .watch__group { margin-top: var(--space-4); }
@@ -398,11 +542,12 @@ const statusModel = computed({
 .watch__credit a:hover { text-decoration: underline; }
 
 @media (max-width: 900px) {
+  .quick__grid { grid-template-columns: minmax(0, 1fr); }
   .detail__grid { grid-template-columns: minmax(0, 1fr); }
   .hero__content { flex-direction: column; }
   .hero__poster { width: 120px; }
   .hero__title { font-size: var(--text-xl); }
-  .score { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
-  .actions__status { min-width: 0; flex: 1 1 100%; }
+  .score-box { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+  .score-box__actions { padding-left: 0; border-left: 0; padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
 }
 </style>

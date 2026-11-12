@@ -1,0 +1,12 @@
+// Mock reviews. `helpedBy` lists the usernames who upvoted a review as helpful.
+export const reviews = [
+  { id: 1, movieId: 1, username: 'john_movie365', avatar: '', rating: 4, text: 'Clever premise and the visuals hold up. The ending still has me arguing with friends.', spoiler: false, helpful: 23, helpedBy: [], createdAt: '2026-08-10' },
+  { id: 2, movieId: 1, username: 'digbickerson24', avatar: '', rating: 5, text: 'The hallway fight alone is worth the watch. Great score too.', spoiler: false, helpful: 9, helpedBy: ['mod_demo'], createdAt: '2026-06-02' },
+  { id: 3, movieId: 1, username: 'MariaReviewsxx', avatar: '', rating: 3, text: 'I liked the concept more than the execution. The first hour spends a lot of time explaining the rules, and while the action scenes are great, I never fully connected with the characters. Still worth seeing once, and the soundtrack is excellent. I would recommend it to anyone who likes puzzle-style stories, but it is not a favorite of mine.', spoiler: false, helpful: 4, helpedBy: [], createdAt: '2026-09-01' },
+  { id: 4, movieId: 1, username: 'reel_talk', avatar: '', rating: 4, text: 'The spinning top in the last shot tells you everything. It does not matter whether it falls.', spoiler: true, helpful: 31, helpedBy: [], createdAt: '2026-09-20' },
+  { id: 5, movieId: 1, username: 'demo_user', avatar: '', rating: 5, text: 'Rewatched this last week and caught details I missed the first time.', spoiler: false, helpful: 2, helpedBy: [], createdAt: '2026-10-28' },
+  { id: 6, movieId: 3, username: 'cinephile_ana', avatar: '', rating: 5, text: 'A crime film that happens to have a hero in it. The pacing never lets up.', spoiler: false, helpful: 14, helpedBy: [], createdAt: '2026-07-15' },
+  { id: 7, movieId: 3, username: 'night_owl_92', avatar: '', rating: 4, text: 'The interrogation scene is the best part of the whole film.', spoiler: true, helpful: 6, helpedBy: [], createdAt: '2026-10-02' },
+  { id: 8, movieId: 1, username: 'film_buff_21', avatar: '', rating: 4, text: 'Dense but rewarding. Worth a second watch to catch what you missed.', spoiler: false, helpful: 5, helpedBy: [], createdAt: '2026-10-05' },
+  { id: 9, movieId: 1, username: 'sunday_screening', avatar: '', rating: 2, text: 'Beautiful to look at, but I found the plot too busy to care about.', spoiler: false, helpful: 1, helpedBy: [], createdAt: '2026-10-18' },
+]
