@@ -4,7 +4,13 @@ import { useRoute, useRouter } from 'vue-router'
 import { getMovie, getSimilarMovies } from '@/api/movies'
 import { submitReport } from '@/api/reports'
 import { getReviews, addReview, updateReview, toggleHelpful, deleteReview } from '@/api/reviews'
-import { getWatchlist, addToWatchlist, updateWatchlistStatus, removeFromWatchlist } from '@/api/watchlist'
+import {
+  getWatchlist,
+  addToWatchlist,
+  updateWatchlistStatus,
+  removeFromWatchlist,
+  WATCHLIST_STATUSES,
+} from '@/api/watchlist'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
 import BaseButton from '@/components/BaseButton.vue'
@@ -224,14 +230,10 @@ async function handleSubmitReport({ reason, details }) {
 
 const watchlistItem = computed(() => watchlist.value.find((w) => w.movieId === movie.value?.id) ?? null)
 
-const STATUS_LABELS = { plan: 'Plan to Watch', watched: 'Watched' }
 const statusOptions = computed(() => {
   const current = watchlistItem.value?.status
-  const options = Object.entries(STATUS_LABELS).map(([value, label]) => ({
-    value,
-    label: `In Watchlist · ${label}`,
-  }))
-  if (current && !(current in STATUS_LABELS)) {
+  const options = WATCHLIST_STATUSES.map(({ value, label }) => ({ value, label: `In Watchlist · ${label}` }))
+  if (current && !WATCHLIST_STATUSES.some((s) => s.value === current)) {
     options.push({ value: current, label: `In Watchlist · ${current}` })
   }
   options.push({ value: 'remove', label: 'Remove from Watchlist' })

@@ -1,6 +1,14 @@
 import { delay } from './client'
 import { watchlist } from '@/mocks/watchlist'
 
+// Every status a watchlist item can have, in tab order. `value` is what is stored.
+export const WATCHLIST_STATUSES = [
+  { value: 'plan', label: 'Plan to Watch' },
+  { value: 'watched', label: 'Watched' },
+  { value: 'hold', label: 'On Hold' },
+  { value: 'dropped', label: 'Dropped' },
+]
+
 export const getWatchlist = () => delay(watchlist)
 
 export const updateWatchlistStatus = (movieId, status) => {
