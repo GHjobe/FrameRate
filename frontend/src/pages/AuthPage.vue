@@ -75,7 +75,11 @@ async function submitRegister() {
 
   loading.value = true
   try {
-    await register({ username: regForm.username, email: regForm.email })
+    await register({
+      username: regForm.username,
+      email: regForm.email,
+      password: regForm.password,
+    })
     view.value = 'verify'
   } catch (e) {
     if (e.code === 'DEVICE_BLOCKED') view.value = 'blocked'
@@ -95,10 +99,10 @@ async function submitRegister() {
       <div class="brand__collage" aria-hidden="true">
         <span v-for="n in 6" :key="n" class="brand__tile" :style="{ '--i': n }" />
       </div>
-      <h1 class="brand__title">Rate what you watch.<br />Find what’s next.</h1>
-      <p class="brand__text">
-        Track the movies you love, share honest reviews, and get recommendations that fit your taste.
-      </p>
+      <h1 class="brand__title">
+        Rate what you watch.<br />Find what’s <span class="brand__accent">next.</span>
+      </h1>
+      <p class="brand__text">Join movie lovers who rate, review, and watch together.</p>
     </section>
 
     <!-- Form card -->
@@ -226,7 +230,7 @@ async function submitRegister() {
 .auth {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: calc(100vh - var(--navbar-height));
+  min-height: 100vh;
 }
 
 /* Brand panel */
@@ -254,6 +258,7 @@ async function submitRegister() {
   opacity: calc(0.4 + var(--i) * 0.1);
 }
 .brand__title { font-size: var(--text-2xl); }
+.brand__accent { color: var(--color-primary); }
 .brand__text { max-width: 420px; color: var(--color-text-muted); }
 
 /* Form panel */
@@ -294,7 +299,7 @@ async function submitRegister() {
 
 /* Form */
 .form { display: flex; flex-direction: column; gap: var(--space-4); }
-.form__title { margin-bottom: var(--space-2); }
+.form__title { margin-bottom: var(--space-2); text-align: center; }
 .row { display: flex; align-items: center; justify-content: space-between; }
 .link {
   color: var(--color-nav-active);

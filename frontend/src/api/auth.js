@@ -14,7 +14,7 @@ export const login = async (identifier, password) => {
   return { username: user.username, role: user.role }
 }
 
-export const register = async ({ username, email }) => {
+export const register = async ({ username, email, password }) => {
   await wait()
   // Fake rule: the username "blocked" simulates a device that already has an account
   if (username.trim().toLowerCase() === 'blocked') {
@@ -32,5 +32,7 @@ export const register = async ({ username, email }) => {
     err.field = 'email'
     throw err
   }
+  // In-memory only: lost on page refresh (mock)
+  users.push({ username: username.trim(), email: email.trim(), password, role: 'user' })
   return { ok: true }
 }
