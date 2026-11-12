@@ -145,7 +145,7 @@ onBeforeUnmount(() => clearInterval(timer))
 }
 .hero__content { position: relative; padding-bottom: var(--space-8); }
 .hero__label { color: var(--color-text-muted); font-size: var(--text-sm); }
-.hero__title { font-size: 3.5rem; margin: var(--space-1) 0; }
+.hero__title { font-family: var(--font-body); font-weight: 700; font-size: 3.5rem; margin: var(--space-1) 0; }
 .hero__meta { color: var(--color-text-muted); margin-bottom: var(--space-4); }
 .hero__actions { display: flex; gap: var(--space-3); }
 .hero__dots { position: absolute; right: var(--space-8); bottom: var(--space-6); display: flex; gap: var(--space-2); }
