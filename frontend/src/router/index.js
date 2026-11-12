@@ -4,14 +4,18 @@ import { useAuthStore } from '@/stores/auth'
 const routes = [
   { path: '/', name: 'home', component: () => import('@/pages/HomePage.vue') },
   { path: '/search', name: 'search', component: () => import('@/pages/SearchPage.vue') },
-  { path: '/login', name: 'login', component: () => import('@/pages/AuthPage.vue') },
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('@/pages/AuthPage.vue'),
+    meta: { hideChrome: true },
+  },
   { path: '/onboarding', name: 'onboarding', component: () => import('@/pages/OnboardingPage.vue') },
   { path: '/movie/:id', name: 'movie', component: () => import('@/pages/MovieDetailPage.vue') },
   { path: '/watchlist', name: 'watchlist', component: () => import('@/pages/WatchlistPage.vue') },
   { path: '/for-you', name: 'for-you', component: () => import('@/pages/ForYouPage.vue') },
   { path: '/watch-together', name: 'watch-together', component: () => import('@/pages/WatchTogetherPage.vue') },
   { path: '/profile', name: 'profile', component: () => import('@/pages/ProfilePage.vue') },
-  { path: '/component-test', component: () => import('../pages/ComponentTest.vue')},
   {
     path: '/moderation',
     name: 'moderation',

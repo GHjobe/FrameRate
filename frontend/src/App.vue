@@ -1,16 +1,19 @@
 <script setup>
+import { useRoute } from 'vue-router'
 import NavBar from '@/components/NavBar.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import ToastHost from '@/components/ToastHost.vue'
+
+const route = useRoute()
 </script>
 
 <template>
   <div class="app">
-    <NavBar />
+    <NavBar v-if="!route.meta.hideChrome" />
     <div class="app__main">
       <RouterView />
     </div>
-    <AppFooter />
+    <AppFooter v-if="!route.meta.hideChrome" />
     <ToastHost />
   </div>
 </template>
